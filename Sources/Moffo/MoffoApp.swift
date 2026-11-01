@@ -66,6 +66,7 @@ struct PetView: View {
         }
         .padding(16)
         .frame(width: 280)
+        .background(FitWindow())
     }
 
     // MARK: - Header
@@ -246,6 +247,24 @@ struct PetView: View {
         .buttonStyle(.plain)
         .font(.caption)
         .foregroundStyle(.secondary)
+    }
+}
+
+/// MenuBarExtra windows grow with their content but never shrink back. This shrinks them,
+/// keeping the top edge pinned under the menu bar. Runs on every render (once a second).
+struct FitWindow: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { NSView() }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        DispatchQueue.main.async {
+            guard let window = view.window, let content = window.contentView else { return }
+            let target = window.frameRect(forContentRect: NSRect(origin: .zero, size: content.fittingSize))
+            guard abs(target.height - window.frame.height) > 0.5 else { return }
+            var frame = window.frame
+            frame.origin.y += frame.height - target.height
+            frame.size.height = target.height
+            window.setFrame(frame, display: true)
+        }
     }
 }
 
