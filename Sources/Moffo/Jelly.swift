@@ -4,6 +4,9 @@ import MoffoCore
 /// Moffo itself: a little jelly drop. Everything is drawn in a unit square scaled to `size`.
 struct Jelly: View {
     var mood: Mood
+    var stage = Stage.adult
+    var form: AdultForm?
+    var activity = Activity.idle
     var squish = false
     var size: CGFloat = 120
     var detailed = true  // false for the tiny menu bar icon
@@ -13,10 +16,21 @@ struct Jelly: View {
             switch mood {
             case .egg: egg
             case .dead: tombstone
-            default: jelly
+            default:
+                jelly
+                    .scaleEffect(detailed ? growth : 1, anchor: .bottom)
+                    .overlay(detailed ? props : nil)
             }
         }
         .frame(width: size, height: size)
+    }
+
+    private var growth: CGFloat {
+        switch stage {
+        case .baby: 0.6
+        case .child: 0.8
+        default: 1
+        }
     }
 
     private var color: Color {
@@ -24,13 +38,40 @@ struct Jelly: View {
         case .sick: Color(red: 0.62, green: 0.72, blue: 0.55)
         case .sad: Color(red: 0.62, green: 0.70, blue: 0.95)
         case .ok: Color(red: 1.0, green: 0.70, blue: 0.80)
-        default: Color(red: 1.0, green: 0.55, blue: 0.72)
+        default: form == .grumpy ? Color(red: 0.85, green: 0.45, blue: 0.62) : Color(red: 1.0, green: 0.55, blue: 0.72)
         }
+    }
+
+    /// Little emoji props that bob along with the squish while an activity runs.
+    @ViewBuilder private var props: some View {
+        let s = size, up: CGFloat = squish ? -s * 0.04 : 0
+        switch activity {
+        case .eating: emoji("🍓", 0.16).offset(x: s * 0.2, y: s * 0.32 + up)
+        case .healing: emoji("💊", 0.14).offset(x: s * 0.2, y: s * 0.32 + up)
+        case .studying: emoji("📖", 0.2).offset(y: s * 0.36)
+        case .playing: emoji("⚽️", 0.16).offset(x: s * 0.36, y: squish ? -s * 0.3 : s * 0.05)
+        case .bathing:
+            emoji("🫧", 0.14).offset(x: -s * 0.36, y: squish ? -s * 0.2 : -s * 0.05)
+            emoji("🫧", 0.1).offset(x: s * 0.38, y: squish ? s * 0.05 : -s * 0.15)
+            emoji("🫧", 0.12).offset(x: s * 0.1, y: squish ? -s * 0.42 : -s * 0.32)
+        case .idle, .sleeping: EmptyView()
+        }
+    }
+
+    private func emoji(_ e: String, _ scale: CGFloat) -> some View {
+        Text(e).font(.system(size: size * scale))
+            .animation(.easeInOut(duration: 0.5), value: squish)
     }
 
     private var jelly: some View {
         let s = size
         return ZStack {
+            if detailed && form == .shiny {
+                Text("✦").font(.system(size: s * 0.16)).foregroundStyle(.yellow)
+                    .shadow(color: .orange, radius: 2)
+                    .offset(y: -s * 0.46)
+                    .scaleEffect(squish ? 1.15 : 0.9)
+            }
             DropShape()
                 .fill(LinearGradient(colors: [color.opacity(0.85), color], startPoint: .top, endPoint: .bottom))
                 .overlay(DropShape().stroke(Color.black.opacity(0.75), lineWidth: max(1, s * 0.025)))
@@ -63,6 +104,14 @@ struct Jelly: View {
         }
         .overlay(mood == .studying ? glasses : nil)
         .offset(y: eyeY)
+
+        if detailed && form == .grumpy && mood != .sleeping {
+            HStack(spacing: s * 0.18) {
+                Capsule().fill(.black).frame(width: s * 0.11, height: line).rotationEffect(.degrees(20))
+                Capsule().fill(.black).frame(width: s * 0.11, height: line).rotationEffect(.degrees(-20))
+            }
+            .offset(y: eyeY - s * 0.1)
+        }
 
         if detailed {
             if mood == .happy || mood == .ok {

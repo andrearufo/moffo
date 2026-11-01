@@ -1,0 +1,94 @@
+/* UI */
+"Happiness" = "Felicità";
+"Hatch a new egg 🥚" = "Fai nascere un nuovo uovo 🥚";
+"Something is moving inside the egg…" = "Qualcosa si muove dentro l'uovo…";
+"Open at login" = "Apri al login";
+"Quit" = "Esci";
+"Past lives" = "Vite passate";
+"Stats" = "Statistiche";
+"Hide details" = "Nascondi dettagli";
+"Show details" = "Mostra dettagli";
+"📚 Moffo learned:" = "📚 Moffo ha imparato:";
+"Cool!" = "Forte!";
+
+/* Age and stages */
+"%lldd %lldh" = "%lldg %lldh";
+"%lldh" = "%lldh";
+"Lived %@" = "Ha vissuto %@";
+"Egg" = "Uovo";
+"Baby" = "Cucciolo";
+"Child" = "Piccolo";
+"Adult" = "Adulto";
+"Shiny adult" = "Adulto splendente";
+"Grumpy adult" = "Adulto brontolone";
+
+/* Moods and activities */
+"Sleeping" = "Dorme";
+"Sick!" = "Malato!";
+"Sad" = "Triste";
+"Okay" = "Così così";
+"Happy" = "Felice";
+"Eating" = "Mangia";
+"Playing" = "Gioca";
+"Bathing" = "Fa il bagno";
+"Taking medicine" = "Prende la medicina";
+"Studying" = "Studia";
+
+/* Stats */
+"Fullness" = "Sazietà";
+"Hygiene" = "Igiene";
+"Energy" = "Energia";
+"Fun" = "Divertimento";
+"Smarts" = "Intelligenza";
+"Health" = "Salute";
+
+/* Actions */
+"Feed" = "Nutri";
+"Play" = "Gioca";
+"Bath" = "Bagno";
+"Study" = "Studia";
+"Medicine" = "Medicina";
+"Wake up" = "Sveglialo";
+"Sleep · until energy is full" = "Dormi · finché l'energia è piena";
+"+25 fullness" = "+25 sazietà";
+"+20 fun" = "+20 divertimento";
+"cleans up, hygiene to 100" = "pulisce, igiene a 100";
+"+30 smarts, learns a fact" = "+30 intelligenza, impara una curiosità";
+"cures sickness" = "cura la malattia";
+"%@ · %lld min, −%lld energy → %@" = "%@ · %lld min, −%lld energia → %@";
+
+/* Notifications */
+"Moffo is hungry 🍓" = "Moffo ha fame 🍓";
+"Moffo needs a bath 🫧" = "Moffo ha bisogno di un bagno 🫧";
+"Moffo is exhausted 😴" = "Moffo è esausto 😴";
+"Moffo is bored, play with it!" = "Moffo si annoia, gioca con lui!";
+"Moffo is sick! Give it some medicine 💊" = "Moffo è malato! Dagli una medicina 💊";
+"Moffo has passed away… 🪦" = "Moffo è morto… 🪦";
+"Moffo learned something new! 📚" = "Moffo ha imparato qualcosa di nuovo! 📚";
+
+/* Facts */
+"Jellyfish have no brain, no heart and no bones. Moffo relates." = "Le meduse non hanno cervello, cuore né ossa. Moffo si riconosce.";
+"One jellyfish, Turritopsis dohrnii, can turn back into a younger stage of its life." = "Una medusa, la Turritopsis dohrnii, può tornare a uno stadio più giovane della sua vita.";
+"Octopuses have three hearts and blue blood." = "I polpi hanno tre cuori e il sangue blu.";
+"A day on Venus is longer than its year." = "Un giorno su Venere dura più del suo anno.";
+"Botanically, bananas are berries, but strawberries are not." = "Per la botanica le banane sono bacche, le fragole no.";
+"Sharks have been around longer than trees." = "Gli squali esistono da prima degli alberi.";
+"The Eiffel Tower grows a few centimetres taller in summer as the metal expands." = "D'estate la Torre Eiffel si allunga di qualche centimetro perché il metallo si dilata.";
+"Wombats produce cube-shaped droppings." = "I vombati fanno la cacca a forma di cubo.";
+"Sea otters hold hands while sleeping so they don't drift apart." = "Le lontre marine si tengono per mano mentre dormono per non allontanarsi.";
+"A group of flamingos is called a flamboyance." = "In inglese un gruppo di fenicotteri si chiama \"flamboyance\".";
+"Your brain uses roughly 20% of your body's energy." = "Il cervello consuma circa il 20% dell'energia del corpo.";
+"Saturn is less dense than water." = "Saturno è meno denso dell'acqua.";
+"Lightning is several times hotter than the surface of the Sun." = "Un fulmine è parecchie volte più caldo della superficie del Sole.";
+"Honey found in ancient Egyptian tombs was still edible thousands of years later." = "Il miele trovato nelle tombe egizie era ancora commestibile dopo migliaia di anni.";
+"The word \"robot\" comes from the Czech \"robota\", meaning forced labour." = "La parola \"robot\" viene dal ceco \"robota\", cioè lavoro forzato.";
+"20-20-20 rule: every 20 minutes, look at something 6 metres away for 20 seconds." = "Regola 20-20-20: ogni 20 minuti guarda qualcosa a 6 metri per 20 secondi.";
+"Short breaks every 25-50 minutes help you stay focused longer." = "Brevi pause ogni 25-50 minuti ti aiutano a restare concentrato più a lungo.";
+"Even mild dehydration can hurt concentration. Go drink some water!" = "Anche una lieve disidratazione peggiora la concentrazione. Vai a bere un bicchiere d'acqua!";
+"Sleep helps your brain consolidate what you learned during the day." = "Il sonno aiuta il cervello a fissare ciò che hai imparato durante il giorno.";
+"Cmd+Shift+5 opens the macOS screenshot and screen recording toolbar." = "Cmd+Maiusc+5 apre la barra di macOS per screenshot e registrazione dello schermo.";
+"Ctrl+Cmd+Space opens the emoji picker in almost any Mac text field." = "Ctrl+Cmd+Spazio apre il selettore delle emoji in quasi tutti i campi di testo del Mac.";
+"Cmd+Option+Esc opens the Force Quit window." = "Cmd+Opzione+Esc apre la finestra Uscita forzata.";
+"Spotlight (Cmd+Space) can do quick maths and unit conversions." = "Spotlight (Cmd+Spazio) fa calcoli veloci e conversioni di unità.";
+"Option-click the Wi-Fi icon in the menu bar for detailed network info." = "Opzione-clic sull'icona Wi-Fi nella barra dei menu mostra i dettagli della rete.";
+"Hold Option while clicking a green window button to zoom instead of going full screen." = "Tieni premuto Opzione mentre clicchi il pulsante verde di una finestra per ingrandirla invece di andare a tutto schermo.";

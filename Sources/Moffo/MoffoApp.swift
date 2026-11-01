@@ -19,11 +19,12 @@ struct PetView: View {
     let store: PetStore
     private var pet: Pet { store.pet }
     @State private var showDetails = false
+    @State private var showGraves = false
     @State private var hovered: String?
 
     var body: some View {
         VStack(spacing: 12) {
-            Jelly(mood: pet.mood, squish: store.squish, size: 120)
+            Jelly(mood: pet.mood, stage: pet.stage, form: pet.form, activity: pet.activity, squish: store.squish, size: 120)
                 .animation(.spring(duration: 0.5, bounce: 0.5), value: store.squish)
 
             VStack(spacing: 2) {
@@ -48,40 +49,60 @@ struct PetView: View {
                 Text("Something is moving inside the egg…").font(.callout)
             }
 
+            if showGraves { graveyard }
+
             Divider()
-            Button("Quit Moffo") { NSApp.terminate(nil) }
-                .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary)
+            footer
         }
         .padding(16)
         .frame(width: 280)
     }
 
-    private var subtitle: String {
-        let end = pet.diedAt ?? store.now
-        let h = Int(end.timeIntervalSince(pet.born) / 3600)
-        let age = h >= 24 ? "\(h / 24)d \(h % 24)h" : "\(h)h"
-        if pet.dead { return "Lived \(age)" }
-        if !pet.hatched { return "Egg" }
-        if let verb = verbs[pet.activity] {
-            return "Age \(age) · \(verb)… \(max(0, Int(pet.activityEnds?.timeIntervalSince(store.now) ?? 0)))s left"
-        }
-        let status: String = switch pet.mood {
-        case .sleeping: "Sleeping"
-        case .sick: "Sick!"
-        case .sad: "Sad"
-        case .ok: "Okay"
-        default: "Happy"
-        }
-        return "Age \(age) · \(status)"
+    // MARK: - Header
+
+    private func ageText(_ seconds: TimeInterval) -> String {
+        let h = Int(seconds / 3600)
+        return h >= 24 ? String(localized: "\(h / 24)d \(h % 24)h") : String(localized: "\(h)h")
     }
 
+    private func stageName(_ stage: Stage, _ form: AdultForm?) -> String {
+        switch (stage, form) {
+        case (.egg, _): String(localized: "Egg")
+        case (.baby, _): String(localized: "Baby")
+        case (.child, _): String(localized: "Child")
+        case (_, .shiny): String(localized: "Shiny adult")
+        case (_, .grumpy): String(localized: "Grumpy adult")
+        default: String(localized: "Adult")
+        }
+    }
+
+    private var subtitle: String {
+        if pet.dead { return String(localized: "Lived \(ageText(pet.age))") }
+        if !pet.hatched { return stageName(.egg, nil) }
+        let status: String
+        if let verb = verbs[pet.activity] {
+            status = "\(verb)… \(max(0, Int(pet.activityEnds?.timeIntervalSince(store.now) ?? 0)))s"
+        } else {
+            status = switch pet.mood {
+            case .sleeping: String(localized: "Sleeping")
+            case .sick: String(localized: "Sick!")
+            case .sad: String(localized: "Sad")
+            case .ok: String(localized: "Okay")
+            default: String(localized: "Happy")
+            }
+        }
+        return [stageName(pet.stage, pet.form), ageText(pet.age), status].joined(separator: " · ")
+    }
+
+    // MARK: - Stats
+
     private var statList: [(icon: String, name: String, value: Double, color: Color)] {
-        [("fork.knife", "Fullness", pet.fullness, .orange),
-         ("drop.fill", "Hygiene", pet.hygiene, .cyan),
-         ("bolt.fill", "Energy", pet.energy, .yellow),
-         ("gamecontroller.fill", "Fun", pet.fun, .purple),
-         ("book.fill", "Smarts", pet.smarts, .blue),
-         ("cross.case.fill", "Health", pet.health, .green)]
+        [("fork.knife", String(localized: "Fullness"), pet.fullness, .orange),
+         ("drop.fill", String(localized: "Hygiene"), pet.hygiene, .cyan),
+         ("bolt.fill", String(localized: "Energy"), pet.energy, .yellow),
+         ("gamecontroller.fill", String(localized: "Fun"), pet.fun, .purple),
+         ("book.fill", String(localized: "Smarts"), pet.smarts, .blue),
+         ("cross.case.fill", String(localized: "Health"), pet.health, .green)]
     }
 
     private var stats: some View {
@@ -98,7 +119,7 @@ struct PetView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(showDetails ? "Hide details" : "Show details")
+            .help(showDetails ? String(localized: "Hide details") : String(localized: "Show details"))
             .accessibilityLabel("Stats")
 
             if showDetails {
@@ -124,7 +145,7 @@ struct PetView: View {
     private func factCard(_ fact: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("📚 Moffo learned:").font(.caption.bold())
-            Text(fact).font(.callout).fixedSize(horizontal: false, vertical: true)
+            Text(NSLocalizedString(fact, comment: "")).font(.callout).fixedSize(horizontal: false, vertical: true)
             Button("Cool!") { store.act { $0.factUnread = false } }.controlSize(.small)
         }
         .padding(10)
@@ -132,28 +153,34 @@ struct PetView: View {
         .background(.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
     }
 
+    // MARK: - Actions
+
     private var actions: some View {
         let sleeping = pet.activity == .sleeping
         return VStack(spacing: 6) {
             HStack(spacing: 8) {
-                timed("fork.knife", .eating, "Feed", "+25 fullness")
-                timed("gamecontroller.fill", .playing, "Play", "+20 fun")
-                timed("bubbles.and.sparkles.fill", .bathing, "Bath", "cleans up, hygiene to 100")
-                action(sleeping ? "sun.max.fill" : "moon.zzz.fill", sleeping ? "Wake up" : "Sleep · until energy is full",
+                timed("fork.knife", .eating, String(localized: "Feed"), String(localized: "+25 fullness"))
+                timed("gamecontroller.fill", .playing, String(localized: "Play"), String(localized: "+20 fun"))
+                timed("bubbles.and.sparkles.fill", .bathing, String(localized: "Bath"), String(localized: "cleans up, hygiene to 100"))
+                action(sleeping ? "sun.max.fill" : "moon.zzz.fill",
+                       sleeping ? String(localized: "Wake up") : String(localized: "Sleep · until energy is full"),
                        enabled: sleeping || pet.activity == .idle, active: sleeping) { $0.toggleSleep() }
-                timed("book.fill", .studying, "Study", "+30 smarts, learns a fact")
-                timed("pills.fill", .healing, "Medicine", "cures sickness")
+                timed("book.fill", .studying, String(localized: "Study"), String(localized: "+30 smarts, learns a fact"))
+                timed("pills.fill", .healing, String(localized: "Medicine"), String(localized: "cures sickness"))
             }
             Text(hovered ?? " ").font(.caption).foregroundStyle(.secondary)
         }
     }
 
-    private let verbs: [Activity: String] = [.eating: "Eating", .playing: "Playing", .bathing: "Bathing",
-                                              .healing: "Taking medicine", .studying: "Studying"]
+    private let verbs: [Activity: String] = [
+        .eating: String(localized: "Eating"), .playing: String(localized: "Playing"),
+        .bathing: String(localized: "Bathing"), .healing: String(localized: "Taking medicine"),
+        .studying: String(localized: "Studying"),
+    ]
 
     private func timed(_ icon: String, _ a: Activity, _ title: String, _ effect: String) -> some View {
         let cost = a.cost!
-        let hint = "\(title) · \(Int(cost.minutes)) min, −\(Int(cost.energy)) energy → \(effect)"
+        let hint = String(localized: "\(title) · \(Int(cost.minutes)) min, −\(Int(cost.energy)) energy → \(effect)")
         return action(icon, hint, enabled: pet.canStart(a), active: pet.activity == a) {
             [now = store.now] in $0.start(a, now: now)
         }
@@ -175,6 +202,40 @@ struct PetView: View {
             if inside { hovered = hint } else if hovered == hint { hovered = nil }
         }
         .accessibilityLabel(hint)
+    }
+
+    // MARK: - Footer
+
+    private var graveyard: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(store.graves, id: \.self) { g in
+                HStack {
+                    Text("🪦")
+                    Text("\(stageName(g.died.timeIntervalSince(g.born) < 3 * 86400 ? .child : .adult, g.form)) · \(ageText(g.died.timeIntervalSince(g.born)))")
+                    Spacer()
+                    Text(g.died, format: .dateTime.day().month()).foregroundStyle(.secondary)
+                }
+                .font(.caption)
+            }
+        }
+        .padding(10)
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var footer: some View {
+        HStack {
+            Toggle("Open at login", isOn: Binding(get: { LoginItem.enabled }, set: { LoginItem.enabled = $0 }))
+                .toggleStyle(.checkbox)
+            Spacer()
+            if !store.graves.isEmpty {
+                Button("🪦 \(store.graves.count)") { withAnimation(.snappy) { showGraves.toggle() } }
+                    .help("Past lives")
+            }
+            Button("Quit") { NSApp.terminate(nil) }
+        }
+        .buttonStyle(.plain)
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
 }
 

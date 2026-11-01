@@ -19,6 +19,11 @@ public enum Activity: String, Codable, CaseIterable {
 
 public enum Mood { case egg, dead, sleeping, studying, sick, sad, ok, happy }
 
+public enum Stage { case egg, baby, child, adult }
+
+/// What an adult turns into, picked by how well it was cared for while growing up.
+public enum AdultForm: String, Codable { case shiny, classic, grumpy }
+
 /// The whole simulation. Time only moves through `advance(to:)`, one minute per step,
 /// so the pet keeps living (and starving) while the Mac is off.
 public struct Pet: Codable, Equatable {
@@ -35,14 +40,39 @@ public struct Pet: Codable, Equatable {
     public var factUnread = false
     public var lastPoop: Date
     public var lastUpdate: Date
+    public var careSum = 0.0, careSteps = 0
+    public var form: AdultForm?
 
     public var dead: Bool { diedAt != nil }
+    public var age: TimeInterval { (diedAt ?? lastUpdate).timeIntervalSince(born) }
+    public var care: Double { careSteps > 0 ? careSum / Double(careSteps) : 0 }
+
+    public var stage: Stage {
+        if !hatched { return .egg }
+        return age < 86400 ? .baby : age < 3 * 86400 ? .child : .adult
+    }
 
     public init(now: Date = .now) {
         born = now; lastPoop = now; lastUpdate = now
     }
 
     // MARK: - Simulation
+
+    /// Gaps longer than this mean the Mac was off/asleep or the app closed.
+    public static let awayThreshold: TimeInterval = 10 * 60
+
+    /// Like `advance`, but away time only counts for a quarter, so a weekend away doesn't kill Moffo.
+    // ponytail: fixed 1/4 rate, add an explicit vacation pause if people leave for weeks
+    public mutating func catchUp(to now: Date) {
+        let gap = now.timeIntervalSince(lastUpdate)
+        if gap > Self.awayThreshold && !dead {
+            let skipped = gap * 0.75
+            lastUpdate += skipped
+            lastPoop += skipped
+            activityEnds = activityEnds.map { $0 + skipped }
+        }
+        advance(to: now)
+    }
 
     public mutating func advance(to now: Date) {
         while !dead && lastUpdate.addingTimeInterval(60) <= now { step() }
@@ -79,6 +109,11 @@ public struct Pet: Codable, Equatable {
         health += sick ? -(1.5 + 0.5 * Double(zeros)) * h : 2 * h
         clamp()
         if health <= 0 { diedAt = lastUpdate }
+
+        careSum += happiness; careSteps += 1
+        if form == nil && stage == .adult {
+            form = care >= 60 ? .shiny : care < 35 ? .grumpy : .classic
+        }
     }
 
     private mutating func finishActivity() {

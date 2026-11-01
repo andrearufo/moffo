@@ -29,6 +29,27 @@ final class PetTests: XCTestCase {
         XCTAssertFalse(pet.dead)
         XCTAssertFalse(pet.sick)
         XCTAssertGreaterThan(pet.happiness, 40)
+        XCTAssertEqual(pet.stage, .adult)
+        XCTAssertNotEqual(pet.form, .grumpy, "care \(pet.care)")
+    }
+
+    func testIgnoredPetGrowsUpGrumpy() {
+        var pet = Pet(now: t0)
+        for i in 1...(4 * 24) {  // only fed, healed and put to bed: survives, but unhappy
+            pet.advance(to: hours(Double(i)))
+            if pet.activity == .idle { pet.start(pet.sick ? .healing : .eating, now: pet.lastUpdate) }
+            if pet.energy < 20 { pet.activity = .sleeping }
+        }
+        XCTAssertFalse(pet.dead)
+        XCTAssertEqual(pet.form, .grumpy, "care \(pet.care)")
+    }
+
+    func testWeekendAwaySurvives() {
+        var pet = Pet(now: t0)
+        pet.advance(to: hours(1))
+        pet.catchUp(to: hours(1 + 60))  // Mac off from Friday evening to Monday morning
+        XCTAssertFalse(pet.dead)
+        XCTAssertEqual(pet.lastUpdate.timeIntervalSince(hours(61)), 0, accuracy: 60)
     }
 
     func testActivitiesCostEnergyAndPayOffOnlyAtTheEnd() {
