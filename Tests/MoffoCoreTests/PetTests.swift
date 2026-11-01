@@ -5,6 +5,24 @@ final class PetTests: XCTestCase {
     let t0 = Date(timeIntervalSince1970: 0)
     func hours(_ h: Double) -> Date { t0.addingTimeInterval(h * 3600) }
 
+    func newborn() -> Pet {
+        var pet = Pet(now: t0)
+        for _ in 0..<Pet.tapsToHatch { pet.tapEgg(now: t0) }
+        return pet
+    }
+
+    func testEggHatchesOnlyWhenTapped() {
+        var pet = Pet(now: t0)
+        pet.advance(to: hours(24))
+        XCTAssertEqual(pet.stage, .egg)
+        for _ in 0..<Pet.tapsToHatch - 1 { pet.tapEgg(now: hours(24)) }
+        XCTAssertFalse(pet.hatched)
+        pet.tapEgg(now: hours(24))
+        XCTAssertEqual(pet.stage, .baby)
+        XCTAssertEqual(pet.age, 0)
+        XCTAssertEqual(pet.fullness, 80)  // nothing decayed while it was an egg
+    }
+
     /// Starts an activity and lets it run to the end.
     func run(_ a: Activity, on pet: inout Pet) {
         pet.start(a, now: pet.lastUpdate)
@@ -12,14 +30,14 @@ final class PetTests: XCTestCase {
     }
 
     func testIgnoredPetDiesInAboutTwoDays() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         pet.advance(to: hours(24 * 10))
         let lived = pet.diedAt!.timeIntervalSince(t0) / 3600
         XCTAssert((36...72).contains(lived), "lived \(lived)h")
     }
 
     func testCaredPetSurvivesAWeek() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         for i in 1...(7 * 4) {  // every 6 hours
             pet.advance(to: hours(Double(i) * 6))
             if pet.activity == .sleeping { pet.toggleSleep() }
@@ -34,7 +52,7 @@ final class PetTests: XCTestCase {
     }
 
     func testIgnoredPetGrowsUpGrumpy() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         for i in 1...(4 * 24) {  // only fed, healed and put to bed: survives, but unhappy
             pet.advance(to: hours(Double(i)))
             if pet.activity == .idle { pet.start(pet.sick ? .healing : .eating, now: pet.lastUpdate) }
@@ -45,7 +63,7 @@ final class PetTests: XCTestCase {
     }
 
     func testWeekendAwaySurvives() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         pet.advance(to: hours(1))
         pet.catchUp(to: hours(1 + 60))  // Mac off from Friday evening to Monday morning
         XCTAssertFalse(pet.dead)
@@ -53,7 +71,7 @@ final class PetTests: XCTestCase {
     }
 
     func testActivitiesCostEnergyAndPayOffOnlyAtTheEnd() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         pet.advance(to: hours(0.1))
         let before = pet
         pet.start(.eating, now: pet.lastUpdate)
@@ -67,7 +85,7 @@ final class PetTests: XCTestCase {
     }
 
     func testStudyGivesAFact() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         pet.advance(to: hours(0.1))
         pet.start(.studying, now: pet.lastUpdate)
         XCTAssertEqual(pet.activityProgress(now: pet.lastUpdate.addingTimeInterval(90))!, 0.5, accuracy: 0.01)
@@ -77,8 +95,20 @@ final class PetTests: XCTestCase {
         XCTAssertNotNil(pet.lastFact)
     }
 
+    func testActivityEndsOnTimeBetweenSteps() {
+        var pet = newborn()
+        pet.advance(to: hours(0.1))
+        let start = pet.lastUpdate.addingTimeInterval(50)  // mid-minute, like a real click
+        pet.start(.bathing, now: start)
+        pet.advance(to: start.addingTimeInterval(59))
+        XCTAssertEqual(pet.activity, .bathing)
+        pet.advance(to: start.addingTimeInterval(60))
+        XCTAssertEqual(pet.activity, .idle)
+        XCTAssertEqual(pet.hygiene, 100)
+    }
+
     func testTooTiredToPlay() {
-        var pet = Pet(now: t0)
+        var pet = newborn()
         pet.advance(to: hours(0.1))
         pet.energy = 5
         XCTAssertFalse(pet.canStart(.playing))

@@ -8,6 +8,7 @@ struct Jelly: View {
     var form: AdultForm?
     var activity = Activity.idle
     var squish = false
+    var crack = 0.0  // 0...1, how cracked the egg is
     var size: CGFloat = 120
     var detailed = true  // false for the tiny menu bar icon
 
@@ -151,6 +152,8 @@ struct Jelly: View {
             .overlay(Ellipse().stroke(.black.opacity(0.75), lineWidth: max(1, size * 0.025)))
             .overlay(detailed ? Circle().fill(color.opacity(0.6)).frame(width: size * 0.12).offset(x: -size * 0.1, y: size * 0.05) : nil)
             .overlay(detailed ? Circle().fill(color.opacity(0.6)).frame(width: size * 0.08).offset(x: size * 0.12, y: -size * 0.12) : nil)
+            .overlay(CrackShape().trim(from: 0, to: crack)
+                .stroke(.black.opacity(0.75), style: StrokeStyle(lineWidth: max(1, size * 0.02), lineCap: .round, lineJoin: .round)))
             .frame(width: size * 0.62, height: size * 0.8)
             .rotationEffect(.degrees(squish ? 4 : -4))
             .offset(y: size * 0.08)
@@ -162,6 +165,19 @@ struct Jelly: View {
             .overlay(detailed ? Text("RIP").font(.system(size: size * 0.16, weight: .heavy, design: .rounded)) : nil)
             .frame(width: size * 0.6, height: size * 0.75)
             .offset(y: size * 0.1)
+    }
+}
+
+/// Zigzag across the egg; trimmed so it grows with each tap.
+struct CrackShape: Shape {
+    func path(in r: CGRect) -> Path {
+        let ys: [CGFloat] = [0.42, 0.36, 0.48, 0.38, 0.5, 0.4, 0.46]
+        var path = Path()
+        for (i, y) in ys.enumerated() {
+            let p = CGPoint(x: r.minX + r.width * CGFloat(i) / CGFloat(ys.count - 1), y: r.minY + r.height * y)
+            i == 0 ? path.move(to: p) : path.addLine(to: p)
+        }
+        return path
     }
 }
 

@@ -21,11 +21,21 @@ struct PetView: View {
     @State private var showDetails = false
     @State private var showGraves = false
     @State private var hovered: String?
+    @State private var wobble = 0.0
 
     var body: some View {
         VStack(spacing: 12) {
-            Jelly(mood: pet.mood, stage: pet.stage, form: pet.form, activity: pet.activity, squish: store.squish, size: 120)
+            Jelly(mood: pet.mood, stage: pet.stage, form: pet.form, activity: pet.activity, squish: store.squish,
+                  crack: Double(pet.eggTaps) / Double(Pet.tapsToHatch), size: 120)
                 .animation(.spring(duration: 0.5, bounce: 0.5), value: store.squish)
+                .rotationEffect(.degrees(wobble), anchor: .bottom)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard !pet.hatched else { return }
+                    store.act { [now = store.now] in $0.tapEgg(now: now) }
+                    wobble = pet.eggTaps.isMultiple(of: 2) ? 12 : -12
+                    withAnimation(.spring(duration: 0.4, bounce: 0.7)) { wobble = 0 }
+                }
 
             VStack(spacing: 2) {
                 HStack(spacing: 8) {
@@ -46,7 +56,7 @@ struct PetView: View {
                 if pet.factUnread, let fact = pet.lastFact { factCard(fact) }
                 actions
             } else {
-                Text("Something is moving inside the egg…").font(.callout)
+                Text("Tap the egg to help it hatch! (\(pet.eggTaps)/\(Pet.tapsToHatch))").font(.callout)
             }
 
             if showGraves { graveyard }

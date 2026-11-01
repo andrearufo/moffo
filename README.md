@@ -9,7 +9,7 @@ Free and open source. Native SwiftUI, no dependencies. English and Italian.
 
 ## Features
 
-- Hatches from an egg about a minute after the first launch, then grows: **baby** (day 1), **child** (days 2–3), **adult**
+- Tap the egg 10 times to hatch it, then it grows: **baby** (day 1), **child** (days 2–3), **adult**
 - The adult form depends on how well you cared for it: **shiny**, classic or **grumpy**
 - Stats: **Fullness, Hygiene, Energy, Fun, Smarts, Health** and an overall **Happiness** index. Click the rings for details
 - Actions: Feed, Play, Bath, Sleep/Wake, Study, Medicine. Each one takes a little time and energy, and pays off when it ends. Hover a button to see the numbers

@@ -1,7 +1,7 @@
 /* UI */
 "Happiness" = "Felicità";
 "Hatch a new egg 🥚" = "Fai nascere un nuovo uovo 🥚";
-"Something is moving inside the egg…" = "Qualcosa si muove dentro l'uovo…";
+"Tap the egg to help it hatch! (%lld/%lld)" = "Tocca l'uovo per farlo schiudere! (%lld/%lld)";
 "Open at login" = "Apri al login";
 "Quit" = "Esci";
 "Past lives" = "Vite passate";

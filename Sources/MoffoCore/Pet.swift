@@ -29,6 +29,7 @@ public enum AdultForm: String, Codable { case shiny, classic, grumpy }
 public struct Pet: Codable, Equatable {
     public var born: Date
     public var hatched = false
+    public var eggTaps = 0
     public var fullness = 80.0, hygiene = 80.0, energy = 80.0, fun = 80.0, smarts = 20.0
     public var health = 100.0
     public var sick = false
@@ -76,14 +77,13 @@ public struct Pet: Codable, Equatable {
 
     public mutating func advance(to now: Date) {
         while !dead && lastUpdate.addingTimeInterval(60) <= now { step() }
+        // steps are a minute apart: don't leave a finished activity hanging until the next one
+        if !dead, activity.cost != nil, let end = activityEnds, now >= end { finishActivity() }
     }
 
     private mutating func step() {
         lastUpdate += 60
-        guard hatched else {
-            hatched = lastUpdate.timeIntervalSince(born) >= 60
-            return
-        }
+        guard hatched else { return }  // an egg waits for you, see tapEgg
         let h = 1.0 / 60  // one minute, rates below are per hour
         fullness -= 4 * h
         hygiene -= (3 + Double(poops)) * h
@@ -148,6 +148,18 @@ public struct Pet: Codable, Equatable {
         energy -= cost.energy
         activity = a
         activityEnds = now.addingTimeInterval(cost.minutes * 60)
+    }
+
+    public static let tapsToHatch = 10
+
+    /// Each tap cracks the egg a bit more. Age counts from hatching.
+    public mutating func tapEgg(now: Date) {
+        guard !hatched else { return }
+        eggTaps += 1
+        if eggTaps >= Self.tapsToHatch {
+            hatched = true
+            born = now; lastPoop = now; lastUpdate = now
+        }
     }
 
     public mutating func toggleSleep() {
