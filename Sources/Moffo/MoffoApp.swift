@@ -62,9 +62,11 @@ struct PetView: View {
         let age = h >= 24 ? "\(h / 24)d \(h % 24)h" : "\(h)h"
         if pet.dead { return "Lived \(age)" }
         if !pet.hatched { return "Egg" }
+        if let verb = verbs[pet.activity] {
+            return "Age \(age) · \(verb)… \(max(0, Int(pet.activityEnds?.timeIntervalSince(store.now) ?? 0)))s left"
+        }
         let status: String = switch pet.mood {
         case .sleeping: "Sleeping"
-        case .studying: "Studying… \(max(0, Int(pet.studyEnds?.timeIntervalSince(store.now) ?? 0)))s left"
         case .sick: "Sick!"
         case .sad: "Sad"
         case .ok: "Okay"
@@ -134,31 +136,41 @@ struct PetView: View {
         let sleeping = pet.activity == .sleeping
         return VStack(spacing: 6) {
             HStack(spacing: 8) {
-                action("fork.knife", "Feed · +25 fullness", enabled: pet.canAct) { $0.feed() }
-                action("gamecontroller.fill", "Play · +20 fun, −5 energy", enabled: pet.canAct && pet.energy >= 10) { $0.play() }
-                action("bubbles.and.sparkles.fill", "Bath · cleans up, hygiene to 100", enabled: true) { $0.clean() }
-                action(sleeping ? "sun.max.fill" : "moon.zzz.fill", sleeping ? "Wake up" : "Sleep · recharges energy",
-                       enabled: pet.activity != .studying) { $0.toggleSleep() }
-                action("book.fill", "Study · \(Int(Pet.studyMinutes)) min, learns a fact", enabled: pet.canAct && pet.energy >= 15) {
-                    [now = store.now] in $0.study(now: now)
-                }
-                action("pills.fill", "Medicine · cures sickness", enabled: pet.sick) { $0.heal() }
+                timed("fork.knife", .eating, "Feed", "+25 fullness")
+                timed("gamecontroller.fill", .playing, "Play", "+20 fun")
+                timed("bubbles.and.sparkles.fill", .bathing, "Bath", "cleans up, hygiene to 100")
+                action(sleeping ? "sun.max.fill" : "moon.zzz.fill", sleeping ? "Wake up" : "Sleep · until energy is full",
+                       enabled: sleeping || pet.activity == .idle, active: sleeping) { $0.toggleSleep() }
+                timed("book.fill", .studying, "Study", "+30 smarts, learns a fact")
+                timed("pills.fill", .healing, "Medicine", "cures sickness")
             }
             Text(hovered ?? " ").font(.caption).foregroundStyle(.secondary)
         }
     }
 
-    private func action(_ icon: String, _ hint: String, enabled: Bool, _ run: @escaping (inout Pet) -> Void) -> some View {
+    private let verbs: [Activity: String] = [.eating: "Eating", .playing: "Playing", .bathing: "Bathing",
+                                              .healing: "Taking medicine", .studying: "Studying"]
+
+    private func timed(_ icon: String, _ a: Activity, _ title: String, _ effect: String) -> some View {
+        let cost = a.cost!
+        let hint = "\(title) · \(Int(cost.minutes)) min, −\(Int(cost.energy)) energy → \(effect)"
+        return action(icon, hint, enabled: pet.canStart(a), active: pet.activity == a) {
+            [now = store.now] in $0.start(a, now: now)
+        }
+    }
+
+    private func action(_ icon: String, _ hint: String, enabled: Bool, active: Bool = false,
+                        _ run: @escaping (inout Pet) -> Void) -> some View {
         Button { store.act(run) } label: {
             Image(systemName: icon)
                 .font(.system(size: 15))
                 .frame(width: 34, height: 34)
-                .background(Circle().fill(hovered == hint && enabled ? Color.pink.opacity(0.25) : Color.primary.opacity(0.07)))
+                .background(Circle().fill(active || (hovered == hint && enabled) ? Color.pink.opacity(0.25) : Color.primary.opacity(0.07)))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.35)
+        .opacity(enabled || active ? 1 : 0.35)
         .onHover { inside in
             if inside { hovered = hint } else if hovered == hint { hovered = nil }
         }

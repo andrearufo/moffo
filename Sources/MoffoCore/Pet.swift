@@ -1,6 +1,21 @@
 import Foundation
 
-public enum Activity: String, Codable { case idle, sleeping, studying }
+public enum Activity: String, Codable, CaseIterable {
+    case idle, sleeping, eating, playing, bathing, healing, studying
+
+    /// Timed activities: how long they take and the energy they cost up front.
+    /// Their benefit lands only when they finish. Sleep has no fixed length: it ends when energy is full.
+    public var cost: (minutes: Double, energy: Double)? {
+        switch self {
+        case .idle, .sleeping: nil
+        case .eating: (1, 2)
+        case .bathing: (1, 4)
+        case .healing: (1, 2)
+        case .playing: (2, 8)
+        case .studying: (3, 10)
+        }
+    }
+}
 
 public enum Mood { case egg, dead, sleeping, studying, sick, sad, ok, happy }
 
@@ -15,7 +30,7 @@ public struct Pet: Codable, Equatable {
     public var diedAt: Date?
     public var poops = 0
     public var activity = Activity.idle
-    public var studyEnds: Date?
+    public var activityEnds: Date?
     public var lastFact: String?
     public var factUnread = false
     public var lastPoop: Date
@@ -45,19 +60,13 @@ public struct Pet: Codable, Equatable {
         fun -= 3 * h
         smarts -= 1 * h
 
-        switch activity {
-        case .sleeping:
+        if activity == .sleeping {
             energy += 25 * h
             if energy >= 100 { activity = .idle }
-        case .studying:
-            energy -= 6 * h
-            if let end = studyEnds, lastUpdate >= end {
-                activity = .idle; studyEnds = nil
-                smarts += 30; fun += 10
-                lastFact = facts.randomElement(); factUnread = true
-            }
-        case .idle:
+        } else {
             energy -= 3 * h
+            // nil end: an activity saved by an older version, just finish it
+            if activity != .idle, lastUpdate >= activityEnds ?? .distantPast { finishActivity() }
         }
 
         if lastUpdate.timeIntervalSince(lastPoop) >= 4 * 3600 {
@@ -72,6 +81,21 @@ public struct Pet: Codable, Equatable {
         if health <= 0 { diedAt = lastUpdate }
     }
 
+    private mutating func finishActivity() {
+        switch activity {
+        case .eating: fullness += 25
+        case .playing: fun += 20
+        case .bathing: hygiene = 100; poops = 0
+        case .healing: sick = false; health += 10
+        case .studying:
+            smarts += 30; fun += 10
+            lastFact = facts.randomElement(); factUnread = true
+        case .idle, .sleeping: break
+        }
+        activity = .idle
+        activityEnds = nil
+    }
+
     private mutating func clamp() {
         func c(_ v: inout Double) { v = min(100, max(0, v)) }
         c(&fullness); c(&hygiene); c(&energy); c(&fun); c(&smarts); c(&health)
@@ -79,24 +103,21 @@ public struct Pet: Codable, Equatable {
 
     // MARK: - Actions
 
-    public var canAct: Bool { hatched && !dead && activity == .idle }
+    public func canStart(_ a: Activity) -> Bool {
+        guard hatched, !dead, activity == .idle, let cost = a.cost, energy >= cost.energy else { return false }
+        return a != .healing || sick
+    }
 
-    public mutating func feed() { guard canAct else { return }; fullness += 25; clamp() }
-    public mutating func play() { guard canAct, energy >= 10 else { return }; fun += 20; energy -= 5; clamp() }
-    public mutating func clean() { guard hatched, !dead else { return }; poops = 0; hygiene = 100 }
-    public mutating func heal() { guard hatched, !dead, sick else { return }; sick = false; health += 10; clamp() }
+    public mutating func start(_ a: Activity, now: Date) {
+        guard canStart(a), let cost = a.cost else { return }
+        energy -= cost.energy
+        activity = a
+        activityEnds = now.addingTimeInterval(cost.minutes * 60)
+    }
 
     public mutating func toggleSleep() {
         guard hatched, !dead else { return }
         if activity == .sleeping { activity = .idle } else if activity == .idle { activity = .sleeping }
-    }
-
-    public static let studyMinutes = 3.0
-
-    public mutating func study(now: Date, minutes: Double = studyMinutes) {
-        guard canAct, energy >= 15 else { return }
-        activity = .studying
-        studyEnds = now.addingTimeInterval(minutes * 60)
     }
 
     // MARK: - Derived
@@ -111,13 +132,9 @@ public struct Pet: Codable, Equatable {
 
     /// 0...1 for the running activity, nil when idle. Sleep progress is energy.
     public func activityProgress(now: Date) -> Double? {
-        switch activity {
-        case .idle: return nil
-        case .sleeping: return energy / 100
-        case .studying:
-            guard let end = studyEnds else { return nil }
-            return min(1, max(0, 1 - end.timeIntervalSince(now) / (Self.studyMinutes * 60)))
-        }
+        if activity == .sleeping { return energy / 100 }
+        guard let cost = activity.cost, let end = activityEnds else { return nil }
+        return min(1, max(0, 1 - end.timeIntervalSince(now) / (cost.minutes * 60)))
     }
 
     public var mood: Mood {
