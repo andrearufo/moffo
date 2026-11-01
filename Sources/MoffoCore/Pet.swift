@@ -91,7 +91,9 @@ public struct Pet: Codable, Equatable {
         if activity == .sleeping { activity = .idle } else if activity == .idle { activity = .sleeping }
     }
 
-    public mutating func study(now: Date, minutes: Double = 3) {
+    public static let studyMinutes = 3.0
+
+    public mutating func study(now: Date, minutes: Double = studyMinutes) {
         guard canAct, energy >= 15 else { return }
         activity = .studying
         studyEnds = now.addingTimeInterval(minutes * 60)
@@ -105,6 +107,17 @@ public struct Pet: Codable, Equatable {
         var v = (fullness + hygiene + energy + fun + smarts * 0.5) / 4.5
         if sick { v *= 0.5 }
         return max(0, v - Double(poops) * 5)
+    }
+
+    /// 0...1 for the running activity, nil when idle. Sleep progress is energy.
+    public func activityProgress(now: Date) -> Double? {
+        switch activity {
+        case .idle: return nil
+        case .sleeping: return energy / 100
+        case .studying:
+            guard let end = studyEnds else { return nil }
+            return min(1, max(0, 1 - end.timeIntervalSince(now) / (Self.studyMinutes * 60)))
+        }
     }
 
     public var mood: Mood {

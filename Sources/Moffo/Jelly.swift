@@ -91,7 +91,7 @@ struct Jelly: View {
     private var glasses: some View {
         HStack(spacing: size * 0.08) {
             ForEach(0..<2, id: \.self) { _ in
-                Circle().stroke(.black, lineWidth: max(1, size * 0.02)).frame(width: size * 0.2)
+                Circle().stroke(.black, lineWidth: max(1, size * 0.02)).frame(width: size * 0.2, height: size * 0.2)
             }
         }
     }

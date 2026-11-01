@@ -59,7 +59,15 @@ final class PetStore {
     }
 
     private func renderIcon() -> NSImage {
-        let r = ImageRenderer(content: Jelly(mood: pet.mood, squish: squish, size: 18, detailed: false))
+        let progress = pet.activityProgress(now: now)
+        let content = HStack(spacing: 3) {
+            Jelly(mood: pet.mood, squish: squish, size: 18, detailed: false)
+            if let progress {
+                Ring(value: progress, color: pet.activity == .sleeping ? .indigo : .pink, lineWidth: 2.5)
+                    .frame(width: 13, height: 13)
+            }
+        }
+        let r = ImageRenderer(content: content)
         r.scale = 2
         return r.nsImage ?? NSImage()
     }
