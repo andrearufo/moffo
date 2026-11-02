@@ -15,7 +15,7 @@ if [ -n "${VERSION:-}" ]; then
   plutil -replace CFBundleVersion -string "$VERSION" "$APP/Contents/Info.plist"
 fi
 mkdir -p "$APP/Contents/Resources"
-cp -R Resources/*.lproj "$APP/Contents/Resources/"
+cp -R Resources/*.lproj Resources/AppIcon.icns "$APP/Contents/Resources/"
 codesign --force --sign - "$APP"
 echo "Built $APP"
 

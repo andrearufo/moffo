@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" width="128" alt="Moffo app icon"></p>
+
 # Moffo
 
 A tiny, squishy jelly that lives in your Mac menu bar. Think tamagotchi: feed it, play with it, give it a bath, put it to bed and let it study. Ignore it and it gets sick… and eventually dies.
