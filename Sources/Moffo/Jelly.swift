@@ -146,14 +146,19 @@ struct Jelly: View {
         }
     }
 
+    private func spot(_ d: CGFloat, _ x: CGFloat, _ y: CGFloat) -> some View {
+        Circle().fill(color.opacity(0.6)).frame(width: size * d).offset(x: size * x, y: size * y)
+    }
+
     private var egg: some View {
-        Ellipse()
+        let outline: CGFloat = max(1, size * 0.025)
+        let crackLine = StrokeStyle(lineWidth: max(1, size * 0.02), lineCap: .round, lineJoin: .round)
+        return Ellipse()
             .fill(Color(red: 1, green: 0.96, blue: 0.86))
-            .overlay(Ellipse().stroke(.black.opacity(0.75), lineWidth: max(1, size * 0.025)))
-            .overlay(detailed ? Circle().fill(color.opacity(0.6)).frame(width: size * 0.12).offset(x: -size * 0.1, y: size * 0.05) : nil)
-            .overlay(detailed ? Circle().fill(color.opacity(0.6)).frame(width: size * 0.08).offset(x: size * 0.12, y: -size * 0.12) : nil)
-            .overlay(CrackShape().trim(from: 0, to: crack)
-                .stroke(.black.opacity(0.75), style: StrokeStyle(lineWidth: max(1, size * 0.02), lineCap: .round, lineJoin: .round)))
+            .overlay(Ellipse().stroke(.black.opacity(0.75), lineWidth: outline))
+            .overlay(detailed ? spot(0.12, -0.1, 0.05) : nil)
+            .overlay(detailed ? spot(0.08, 0.12, -0.12) : nil)
+            .overlay(CrackShape().trim(from: 0, to: crack).stroke(.black.opacity(0.75), style: crackLine))
             .frame(width: size * 0.62, height: size * 0.8)
             .rotationEffect(.degrees(squish ? 4 : -4))
             .offset(y: size * 0.08)
