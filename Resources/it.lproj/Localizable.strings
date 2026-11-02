@@ -4,6 +4,8 @@
 "Tap the egg to help it hatch! (%lld/%lld)" = "Tocca l'uovo per farlo schiudere! (%lld/%lld)";
 "Open at login" = "Apri al login";
 "Quit" = "Esci";
+"Log" = "Log";
+"Show the log file in Finder" = "Mostra il file di log nel Finder";
 "Past lives" = "Vite passate";
 "Stats" = "Statistiche";
 "Hide details" = "Nascondi dettagli";

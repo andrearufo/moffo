@@ -15,6 +15,7 @@ final class PetStore {
     private let start = Date()
     private var alerted: Set<String> = []
     private var timer: Timer?
+    private var lastStatsHour = -1
     private static let key = "pet"
     private static let gravesKey = "graves"
 
@@ -22,10 +23,16 @@ final class PetStore {
     private var canNotify: Bool { Bundle.main.bundleIdentifier != nil }  // `swift run` has no bundle
 
     init() {
-        if let data = UserDefaults.standard.data(forKey: Self.key),
-           let saved = try? JSONDecoder().decode(Pet.self, from: data) {
-            pet = saved
+        let info = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
+        Log.write("start", "Moffo \(info) · macOS \(ProcessInfo.processInfo.operatingSystemVersionString)"
+                  + " · \(Locale.preferredLanguages.first ?? "?") · speed \(speed)")
+        if let data = UserDefaults.standard.data(forKey: Self.key) {
+            do { pet = try JSONDecoder().decode(Pet.self, from: data) } catch {
+                Log.write("error", "saved pet unreadable, starting a new egg: \(error)")
+                pet = Pet()
+            }
         } else {
+            Log.write("egg", "no saved pet, new egg")
             pet = Pet()
         }
         if let data = UserDefaults.standard.data(forKey: Self.gravesKey) {
@@ -41,7 +48,15 @@ final class PetStore {
     }
 
     func tick() {
+        let old = pet
+        let gap = now.timeIntervalSince(pet.lastUpdate)
+        if gap > Pet.awayThreshold && !pet.dead {
+            Log.write("away", "\(Self.duration(gap)) away → counted as \(Self.duration(gap / 4))")
+        }
         pet.catchUp(to: now)
+        logChanges(from: old)
+        let hour = Int(now.timeIntervalSince1970 / 3600)
+        if hour != lastStatsHour { lastStatsHour = hour; Log.write("stats", Self.stats(pet)) }
         squish.toggle()
         icon = renderIcon()
         save()
@@ -50,7 +65,9 @@ final class PetStore {
 
     func act(_ action: (inout Pet) -> Void) {
         pet.catchUp(to: now)
+        let old = pet
         action(&pet)
+        logChanges(from: old)
         save()
     }
 
@@ -60,12 +77,44 @@ final class PetStore {
             if let data = try? JSONEncoder().encode(graves) { UserDefaults.standard.set(data, forKey: Self.gravesKey) }
         }
         pet = Pet(now: now)
+        Log.write("egg", "new egg (\(graves.count) in the graveyard)")
         alerted = []
         save()
     }
 
     private func save() {
         if let data = try? JSONEncoder().encode(pet) { UserDefaults.standard.set(data, forKey: Self.key) }
+    }
+
+    // MARK: - Log
+
+    private func logChanges(from old: Pet) {
+        let p = pet
+        guard old != p else { return }
+        if p.eggTaps != old.eggTaps && !p.hatched { Log.write("egg", "tap \(p.eggTaps)/\(Pet.tapsToHatch)") }
+        if p.hatched && !old.hatched { Log.write("hatch", "Moffo hatched!") }
+        if p.activity != old.activity {
+            if old.activity != .idle { Log.write("done", "\(old.activity.rawValue) · \(Self.stats(p))") }
+            if p.activity == .sleeping { Log.write("start", "sleeping") }
+            else if p.activity != .idle { Log.write("start", "\(p.activity.rawValue) (−\(Int(old.energy - p.energy)) energy)") }
+        }
+        if p.hatched && p.stage != old.stage { Log.write("grow", "\(p.stage)") }
+        if let form = p.form, old.form == nil { Log.write("grow", "adult form \(form.rawValue) (care \(Int(p.care)))") }
+        if p.poops > old.poops { Log.write("poop", "\(p.poops) on the floor") }
+        if p.sick != old.sick { Log.write("health", p.sick ? "got sick · \(Self.stats(p))" : "cured") }
+        if p.factUnread && !old.factUnread, let fact = p.lastFact { Log.write("fact", fact) }
+        if p.dead && !old.dead { Log.write("death", "died at \(Self.duration(p.age)) · \(Self.stats(p))") }
+    }
+
+    private static func stats(_ p: Pet) -> String {
+        let v = [("full", p.fullness), ("hyg", p.hygiene), ("en", p.energy), ("fun", p.fun),
+                 ("smart", p.smarts), ("hp", p.health)].map { "\($0) \(Int($1))" }
+        return v.joined(separator: " ") + " · ♥ \(Int(p.happiness))" + (p.poops > 0 ? " · 💩\(p.poops)" : "")
+    }
+
+    private static func duration(_ s: TimeInterval) -> String {
+        let m = Int(s / 60)
+        return m >= 60 ? "\(m / 60)h \(m % 60)m" : "\(m)m"
     }
 
     private func renderIcon() -> NSImage {
@@ -97,6 +146,7 @@ final class PetStore {
             if !active { alerted.remove(id); continue }
             guard !alerted.contains(id) else { continue }
             alerted.insert(id)
+            Log.write("notify", id)
             guard canNotify else { continue }
             let content = UNMutableNotificationContent()
             content.title = "Moffo"
@@ -118,7 +168,7 @@ enum LoginItem {
         get { SMAppService.mainApp.status == .enabled }
         set {
             do { try newValue ? SMAppService.mainApp.register() : SMAppService.mainApp.unregister() }
-            catch { NSLog("Moffo login item: \(error)") }
+            catch { Log.write("error", "login item: \(error)") }
         }
     }
 }

@@ -242,6 +242,8 @@ struct PetView: View {
                 Button("🪦 \(store.graves.count)") { withAnimation(.snappy) { showGraves.toggle() } }
                     .help("Past lives")
             }
+            Button("Log") { NSWorkspace.shared.activateFileViewerSelecting([Log.url]) }
+                .help("Show the log file in Finder")
             Button("Quit") { NSApp.terminate(nil) }
         }
         .buttonStyle(.plain)

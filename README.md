@@ -52,6 +52,8 @@ Time warp for testing: `MOFFO_SPEED=60` makes one real minute last one Moffo hou
 pkill Moffo; MOFFO_SPEED=60 build/Moffo.app/Contents/MacOS/Moffo
 ```
 
+Moffo keeps a diary of what it does (actions, sickness, time away, hourly stats, errors) in `~/Library/Logs/Moffo/moffo.log`: click "Log" in its window, or `tail -f ~/Library/Logs/Moffo/moffo.log`.
+
 Reset Moffo (new egg, empty graveyard): `pkill Moffo; defaults delete dev.rufo.moffo`
 
 Try another language: `defaults write dev.rufo.moffo AppleLanguages '(en)'` (remove it with `defaults delete dev.rufo.moffo AppleLanguages`). Translations live in `Resources/<lang>.lproj/Localizable.strings`.
