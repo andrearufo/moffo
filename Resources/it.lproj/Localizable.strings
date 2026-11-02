@@ -5,6 +5,8 @@
 "Open at login" = "Apri al login";
 "Quit" = "Esci";
 "Log" = "Log";
+"Moffo %@ is available" = "È disponibile Moffo %@";
+"Download" = "Scarica";
 "Show the log file in Finder" = "Mostra il file di log nel Finder";
 "Past lives" = "Vite passate";
 "Stats" = "Statistiche";

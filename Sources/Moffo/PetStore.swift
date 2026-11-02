@@ -9,12 +9,15 @@ final class PetStore {
     var squish = false
     var icon = NSImage()
     var graves: [Grave] = []
+    /// A newer release on GitHub, if any.
+    var update: (version: String, url: URL)?
 
     /// MOFFO_SPEED=60 makes one real minute last an hour. For testing only.
     private let speed = Double(ProcessInfo.processInfo.environment["MOFFO_SPEED"] ?? "") ?? 1
     private let start = Date()
     private var alerted: Set<String> = []
     private var timer: Timer?
+    private var updateTimer: Timer?
     private var lastStatsHour = -1
     private static let key = "pet"
     private static let gravesKey = "graves"
@@ -44,6 +47,10 @@ final class PetStore {
         tick()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
+        }
+        Task { await checkForUpdate() }
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 6 * 3600, repeats: true) { [weak self] _ in
+            Task { await self?.checkForUpdate() }
         }
     }
 
@@ -84,6 +91,31 @@ final class PetStore {
 
     private func save() {
         if let data = try? JSONEncoder().encode(pet) { UserDefaults.standard.set(data, forKey: Self.key) }
+    }
+
+    // MARK: - Updates
+
+    private struct Release: Decodable {
+        struct Asset: Decodable { let name: String; let browser_download_url: URL }
+        let tag_name: String
+        let html_url: URL
+        let assets: [Asset]
+    }
+
+    func checkForUpdate() async {
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        let api = URL(string: "https://api.github.com/repos/andrearufo/moffo/releases/latest")!
+        do {
+            let (data, _) = try await URLSession.shared.data(from: api)
+            let release = try JSONDecoder().decode(Release.self, from: data)
+            let latest = release.tag_name.trimmingCharacters(in: CharacterSet(charactersIn: "v"))
+            guard current.compare(latest, options: .numeric) == .orderedAscending else { update = nil; return }
+            let dmg = release.assets.first { $0.name.hasSuffix(".dmg") }?.browser_download_url
+            if update?.version != latest { Log.write("update", "\(latest) available (running \(current))") }
+            update = (latest, dmg ?? release.html_url)
+        } catch {
+            Log.write("error", "update check: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Log

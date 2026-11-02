@@ -27,6 +27,12 @@ Free and open source. Native SwiftUI, no dependencies. English and Italian.
 
 ## Install
 
+Download `Moffo.dmg` from the [latest release](https://github.com/andrearufo/moffo/releases/latest), open it and drag Moffo into Applications. Every push to `main` publishes a new release, and Moffo shows a banner in its window when one is out: download it and drag it over the old one.
+
+The app is ad-hoc signed, not notarized. The first time macOS blocks it: open System Settings → Privacy & Security and click "Open Anyway". Apple Silicon only for now.
+
+Or build it yourself:
+
 ```bash
 git clone https://github.com/andrearufo/moffo.git
 cd moffo
@@ -34,8 +40,6 @@ cd moffo
 cp -R build/Moffo.app /Applications/
 open /Applications/Moffo.app
 ```
-
-The app is ad-hoc signed. If macOS blocks it, right-click it in Finder, choose Open, then confirm.
 
 To start Moffo at login, tick "Open at login" at the bottom of its window.
 

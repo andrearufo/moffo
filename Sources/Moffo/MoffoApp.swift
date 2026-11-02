@@ -61,6 +61,17 @@ struct PetView: View {
 
             if showGraves { graveyard }
 
+            if let update = store.update {
+                HStack {
+                    Image(systemName: "arrow.down.circle.fill").foregroundStyle(.pink)
+                    Text("Moffo \(update.version) is available").font(.caption)
+                    Spacer()
+                    Link("Download", destination: update.url).font(.caption.bold())
+                }
+                .padding(8)
+                .background(.pink.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            }
+
             Divider()
             footer
         }

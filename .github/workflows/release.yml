@@ -1,0 +1,21 @@
+# Every push to main builds Moffo.dmg and publishes it as a GitHub release (v0.1.<run number>).
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test
+      - run: VERSION=0.1.${{ github.run_number }} ./scripts/build-app.sh --dmg
+      - run: gh release create v0.1.${{ github.run_number }} build/Moffo.dmg --title "Moffo 0.1.${{ github.run_number }}" --generate-notes --latest
+        env:
+          GH_TOKEN: ${{ github.token }}
