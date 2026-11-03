@@ -62,6 +62,9 @@ final class PetStore {
         }
         pet.catchUp(to: now)
         logChanges(from: old)
+        if old.activity != .idle && old.activity != .studying && pet.activity == .idle && !pet.dead {
+            notify("done", Self.doneText[old.activity] ?? "")  // studying already notifies its fact
+        }
         let hour = Int(now.timeIntervalSince1970 / 3600)
         if hour != lastStatsHour { lastStatsHour = hour; Log.write("stats", Self.stats(pet)) }
         squish.toggle()
@@ -178,13 +181,25 @@ final class PetStore {
             if !active { alerted.remove(id); continue }
             guard !alerted.contains(id) else { continue }
             alerted.insert(id)
-            Log.write("notify", id)
-            guard canNotify else { continue }
-            let content = UNMutableNotificationContent()
-            content.title = "Moffo"
-            content.body = text
-            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: nil))
+            notify(id, text)
         }
+    }
+
+    private static let doneText: [Activity: String] = [
+        .eating: String(localized: "Moffo finished eating 🍓"),
+        .playing: String(localized: "Moffo finished playing ⚽️"),
+        .bathing: String(localized: "Moffo is squeaky clean 🫧"),
+        .healing: String(localized: "Moffo took its medicine 💊"),
+        .sleeping: String(localized: "Moffo woke up full of energy ☀️"),
+    ]
+
+    private func notify(_ id: String, _ text: String) {
+        Log.write("notify", id)
+        guard canNotify else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Moffo"
+        content.body = text
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: nil))
     }
 }
 

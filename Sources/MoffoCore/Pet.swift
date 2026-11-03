@@ -105,7 +105,7 @@ public struct Pet: Codable, Equatable {
         clamp()
 
         let zeros = [fullness, hygiene, energy, fun].filter { $0 <= 0 }.count
-        if zeros > 0 || poops >= 4 { sick = true }
+        if !sickCauses.isEmpty { sick = true }
         health += sick ? -(1.5 + 0.5 * Double(zeros)) * h : 2 * h
         clamp()
         if health <= 0 { diedAt = lastUpdate }
@@ -175,6 +175,12 @@ public struct Pet: Codable, Equatable {
         var v = (fullness + hygiene + energy + fun + smarts * 0.5) / 4.5
         if sick { v *= 0.5 }
         return max(0, v - Double(poops) * 5)
+    }
+
+    /// What makes it sick: medicine won't stick while any of these is still true.
+    public var sickCauses: [String] {
+        [("poops", poops >= 4), ("fullness", fullness <= 0), ("hygiene", hygiene <= 0),
+         ("energy", energy <= 0), ("fun", fun <= 0)].filter(\.1).map(\.0)
     }
 
     /// 0...1 for the running activity, nil when idle. Sleep progress is energy.

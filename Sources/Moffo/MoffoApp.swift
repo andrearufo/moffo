@@ -188,10 +188,21 @@ struct PetView: View {
                        sleeping ? String(localized: "Wake up") : String(localized: "Sleep · until energy is full"),
                        enabled: sleeping || pet.activity == .idle, active: sleeping) { $0.toggleSleep() }
                 timed("book.fill", .studying, String(localized: "Study"), String(localized: "+30 smarts, learns a fact"))
-                timed("pills.fill", .healing, String(localized: "Medicine"), String(localized: "cures sickness"))
+                timed("pills.fill", .healing, String(localized: "Medicine"), medicineEffect)
             }
             Text(hovered ?? " ").font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    /// Warns when medicine would be wasted because the cause is still there.
+    private var medicineEffect: String {
+        let fixes: [String: String] = [
+            "poops": String(localized: "bath"), "hygiene": String(localized: "bath"),
+            "fullness": String(localized: "food"), "energy": String(localized: "sleep"), "fun": String(localized: "play"),
+        ]
+        let needed = Array(Set(pet.sickCauses.compactMap { fixes[$0] })).sorted()
+        if needed.isEmpty { return String(localized: "cures sickness") }
+        return String(localized: "⚠️ needs \(needed.joined(separator: ", ")) first, or it gets sick again")
     }
 
     private let verbs: [Activity: String] = [

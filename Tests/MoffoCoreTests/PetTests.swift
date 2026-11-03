@@ -107,6 +107,22 @@ final class PetTests: XCTestCase {
         XCTAssertEqual(pet.hygiene, 100)
     }
 
+    func testMedicineDoesNotStickWhilePoopsRemain() {
+        var pet = newborn()
+        pet.advance(to: hours(0.1))
+        pet.poops = 4
+        pet.advance(to: hours(0.2))
+        XCTAssertTrue(pet.sick)
+        XCTAssertEqual(pet.sickCauses, ["poops"])
+        run(.healing, on: &pet)
+        pet.advance(to: pet.lastUpdate.addingTimeInterval(120))
+        XCTAssertTrue(pet.sick)  // still 4 poops: sick again
+        run(.bathing, on: &pet)
+        run(.healing, on: &pet)
+        XCTAssertFalse(pet.sick)
+        XCTAssertEqual(pet.sickCauses, [])
+    }
+
     func testTooTiredToPlay() {
         var pet = newborn()
         pet.advance(to: hours(0.1))

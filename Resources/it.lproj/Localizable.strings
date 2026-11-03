@@ -5,6 +5,16 @@
 "Open at login" = "Apri al login";
 "Quit" = "Esci";
 "Log" = "Log";
+"bath" = "bagno";
+"food" = "cibo";
+"sleep" = "sonno";
+"play" = "gioco";
+"⚠️ needs %@ first, or it gets sick again" = "⚠️ prima serve %@, o si riammala";
+"Moffo finished eating 🍓" = "Moffo ha finito di mangiare 🍓";
+"Moffo finished playing ⚽️" = "Moffo ha finito di giocare ⚽️";
+"Moffo is squeaky clean 🫧" = "Moffo è pulitissimo 🫧";
+"Moffo took its medicine 💊" = "Moffo ha preso la medicina 💊";
+"Moffo woke up full of energy ☀️" = "Moffo si è svegliato pieno di energia ☀️";
 "Moffo %@ is available" = "È disponibile Moffo %@";
 "Download" = "Scarica";
 "Show the log file in Finder" = "Mostra il file di log nel Finder";
