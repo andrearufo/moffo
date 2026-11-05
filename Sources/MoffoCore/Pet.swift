@@ -118,17 +118,18 @@ public struct Pet: Codable, Equatable {
 
     private mutating func finishActivity() {
         switch activity {
-        case .eating: fullness += 25
-        case .playing: fun += 20
-        case .bathing: hygiene = 100; poops = 0
+        case .eating: fullness += gain(.eating)
+        case .playing: fun += gain(.playing)
+        case .bathing: hygiene += gain(.bathing); poops = 0
         case .healing: sick = false; health += 10
         case .studying:
-            smarts += 30; fun += 10
+            smarts += gain(.studying); fun += 10
             lastFact = facts.randomElement(); factUnread = true
         case .idle, .sleeping: break
         }
         activity = .idle
         activityEnds = nil
+        clamp()
     }
 
     private mutating func clamp() {
@@ -175,6 +176,20 @@ public struct Pet: Codable, Equatable {
         var v = (fullness + hygiene + energy + fun + smarts * 0.5) / 4.5
         if sick { v *= 0.5 }
         return max(0, v - Double(poops) * 5)
+    }
+
+    /// How much an activity raises its stat. A neglected stat recovers slowly: at 0 it gets 40%
+    /// of the base amount, at 100 all of it, so hours of neglect take several actions to undo.
+    public func gain(_ a: Activity) -> Double {
+        func recover(_ base: Double, _ value: Double) -> Double { base * (0.4 + 0.6 * value / 100) }
+        switch a {
+        case .eating: return recover(25, fullness)
+        case .playing: return recover(20, fun)
+        case .bathing: return recover(45, hygiene)
+        case .studying: return recover(30, smarts)
+        case .healing: return 10
+        case .idle, .sleeping: return 0
+        }
     }
 
     /// What makes it sick: medicine won't stick while any of these is still true.

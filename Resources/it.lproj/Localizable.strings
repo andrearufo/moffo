@@ -64,10 +64,10 @@
 "Medicine" = "Medicina";
 "Wake up" = "Sveglialo";
 "Sleep · until energy is full" = "Dormi · finché l'energia è piena";
-"+25 fullness" = "+25 sazietà";
-"+20 fun" = "+20 divertimento";
-"cleans up, hygiene to 100" = "pulisce, igiene a 100";
-"+30 smarts, learns a fact" = "+30 intelligenza, impara una curiosità";
+"+%lld fullness" = "+%lld sazietà";
+"+%lld fun" = "+%lld divertimento";
+"cleans up, +%lld hygiene" = "pulisce, +%lld igiene";
+"+%lld smarts, learns a fact" = "+%lld intelligenza, impara una curiosità";
 "cures sickness" = "cura la malattia";
 "%@ · %lld min, −%lld energy → %@" = "%@ · %lld min, −%lld energia → %@";
 

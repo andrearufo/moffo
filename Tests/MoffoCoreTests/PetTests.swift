@@ -104,7 +104,18 @@ final class PetTests: XCTestCase {
         XCTAssertEqual(pet.activity, .bathing)
         pet.advance(to: start.addingTimeInterval(60))
         XCTAssertEqual(pet.activity, .idle)
-        XCTAssertEqual(pet.hygiene, 100)
+        XCTAssertEqual(pet.hygiene, 100)  // 80 + 45×0.88, capped
+    }
+
+    func testNeglectTakesSeveralActionsToFix() {
+        var pet = newborn()
+        pet.advance(to: hours(0.1))
+        pet.fullness = 5
+        run(.eating, on: &pet)
+        XCTAssertLessThan(pet.fullness, 20)  // a starving Moffo can't eat much at once
+        for _ in 0..<4 { run(.eating, on: &pet) }
+        XCTAssertGreaterThan(pet.fullness, 75)
+        XCTAssertGreaterThan(pet.gain(.eating), 20)  // and meals get bigger as it recovers
     }
 
     func testMedicineDoesNotStickWhilePoopsRemain() {

@@ -14,7 +14,7 @@ Free and open source. Native SwiftUI, no dependencies. English and Italian.
 - Tap the egg 10 times to hatch it, then it grows: **baby** (day 1), **child** (days 2–3), **adult**
 - The adult form depends on how well you cared for it: **shiny**, classic or **grumpy**
 - Stats: **Fullness, Hygiene, Energy, Fun, Smarts, Health** and an overall **Happiness** index. Click the rings for details
-- Actions: Feed, Play, Bath, Sleep/Wake, Study, Medicine. Each one takes a little time and energy, and pays off when it ends. Hover a button to see the numbers
+- Actions: Feed, Play, Bath, Sleep/Wake, Study, Medicine. Each one takes a little time and energy, and pays off when it ends. A neglected stat recovers slowly, so hours of neglect take several actions to undo. Hover a button to see the numbers
 - **Study**: Moffo studies for 3 minutes, then tells you a useful or curious fact
 - Poops every ~4 hours. Too many poops or an empty stat make it sick, and a sick Moffo loses health until it dies
 - Ignored, it lives about 2 days. While the Mac is off or asleep time runs at ¼ speed, so a weekend away is fine

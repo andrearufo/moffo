@@ -181,13 +181,13 @@ struct PetView: View {
         let sleeping = pet.activity == .sleeping
         return VStack(spacing: 6) {
             HStack(spacing: 8) {
-                timed("fork.knife", .eating, String(localized: "Feed"), String(localized: "+25 fullness"))
-                timed("gamecontroller.fill", .playing, String(localized: "Play"), String(localized: "+20 fun"))
-                timed("bubbles.and.sparkles.fill", .bathing, String(localized: "Bath"), String(localized: "cleans up, hygiene to 100"))
+                timed("fork.knife", .eating, String(localized: "Feed"), String(localized: "+\(Int(pet.gain(.eating))) fullness"))
+                timed("gamecontroller.fill", .playing, String(localized: "Play"), String(localized: "+\(Int(pet.gain(.playing))) fun"))
+                timed("bubbles.and.sparkles.fill", .bathing, String(localized: "Bath"), String(localized: "cleans up, +\(Int(pet.gain(.bathing))) hygiene"))
                 action(sleeping ? "sun.max.fill" : "moon.zzz.fill",
                        sleeping ? String(localized: "Wake up") : String(localized: "Sleep · until energy is full"),
                        enabled: sleeping || pet.activity == .idle, active: sleeping) { $0.toggleSleep() }
-                timed("book.fill", .studying, String(localized: "Study"), String(localized: "+30 smarts, learns a fact"))
+                timed("book.fill", .studying, String(localized: "Study"), String(localized: "+\(Int(pet.gain(.studying))) smarts, learns a fact"))
                 timed("pills.fill", .healing, String(localized: "Medicine"), medicineEffect)
             }
             Text(hovered ?? " ").font(.caption).foregroundStyle(.secondary)
