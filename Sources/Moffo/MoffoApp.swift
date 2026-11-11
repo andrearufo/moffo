@@ -22,6 +22,7 @@ struct PetView: View {
     @State private var showGraves = false
     @State private var hovered: String?
     @State private var wobble = 0.0
+    @State private var height: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 12) {
@@ -77,7 +78,8 @@ struct PetView: View {
         }
         .padding(16)
         .frame(width: 280)
-        .background(FitWindow())
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+        .background(FitWindow(height: height))
     }
 
     // MARK: - Header
@@ -274,15 +276,18 @@ struct PetView: View {
     }
 }
 
-/// MenuBarExtra windows grow with their content but never shrink back. This shrinks them,
-/// keeping the top edge pinned under the menu bar. Runs on every render (once a second).
+/// MenuBarExtra windows grow with their content but never shrink back. This shrinks them to the
+/// measured content height, keeping the top edge pinned under the menu bar. Taking the height as
+/// an input makes SwiftUI call updateNSView whenever it changes.
 struct FitWindow: NSViewRepresentable {
+    var height: CGFloat
+
     func makeNSView(context: Context) -> NSView { NSView() }
 
     func updateNSView(_ view: NSView, context: Context) {
         DispatchQueue.main.async {
-            guard let window = view.window, let content = window.contentView else { return }
-            let target = window.frameRect(forContentRect: NSRect(origin: .zero, size: content.fittingSize))
+            guard height > 0, let window = view.window else { return }
+            let target = window.frameRect(forContentRect: NSRect(x: 0, y: 0, width: window.frame.width, height: height))
             guard abs(target.height - window.frame.height) > 0.5 else { return }
             var frame = window.frame
             frame.origin.y += frame.height - target.height
